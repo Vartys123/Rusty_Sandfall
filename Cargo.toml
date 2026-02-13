@@ -1,0 +1,15 @@
+[package]
+name = "rusty_sandfall"
+version = "1.0.0"
+edition = "2024"
+
+[dependencies]
+macroquad = "0.4.14"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = 3
+incremental = true
+strip = "symbols"
