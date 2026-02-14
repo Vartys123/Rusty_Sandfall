@@ -5,6 +5,7 @@ struct Grid {
     cols: usize,
     rows: usize,
     cells: Vec<bool>,
+    img: Image,
 }
 
 impl Grid {
@@ -13,6 +14,7 @@ impl Grid {
             cols: w,
             rows: h,
             cells: vec![false; w * h],
+            img: Image::gen_image_color(w as u16, h as u16, BLACK),
         }
     }
     fn random_fill(&mut self, p_start: f32, p_end: f32){
@@ -37,6 +39,8 @@ impl Grid {
     fn set(&mut self, x: usize, y: usize, val: bool) {
         if x < self.cols && y < self.rows {
             self.cells[y * self.cols + x] = val;
+            let color = if val { GOLD } else { BLACK };
+            self.img.set_pixel(x as u32, y as u32, color);
         }
     }
     fn step(&mut self) {
@@ -55,20 +59,6 @@ impl Grid {
             }
         }
     }
-    fn draw(&mut self, img: &mut Image){
-        for y in 0..self.rows {
-            for x in 0..self.cols {
-                let color;
-                if self.get(x, y)==true{
-                    color = GOLD;
-                }
-                else {
-                    color = BLACK;
-                }
-                img.set_pixel(x as u32, y as u32, color);
-            }
-        }
-    }
 }
 
 #[macroquad::main("Rusty Sandfall")]
@@ -76,11 +66,8 @@ async fn main() {
    // rand::srand(macroquad::miniquad::date::now() as u64);
     let mut grid = Grid::new(2048, 2048);
     grid.random_fill(0.9, 0.01);
-    let mut image = Image::gen_image_color(grid.cols as u16, grid.rows as u16, BLACK);
-    let texture = Texture2D::from_image(&image);
+    let texture = Texture2D::from_image(&grid.img);
     texture.set_filter(FilterMode::Nearest);
-    grid.draw(&mut image);
-    texture.update(&image);
 
     let mut last_update_time = 0.0;
     let update_interval = 0.025;
@@ -98,8 +85,7 @@ async fn main() {
 
         if is_pressed && time_passed{
             grid.step();
-            grid.draw(&mut image);
-            texture.update(&image);
+            texture.update(&grid.img);
             last_update_time = current_time;
         }
 
