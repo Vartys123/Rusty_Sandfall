@@ -13,3 +13,12 @@ panic = "abort"
 opt-level = 3
 incremental = true
 strip = "symbols"
+debug = true
+
+[profile.dev]
+lto = "thin"
+codegen-units = 1
+opt-level = 1
+debug = true
+strip = false
+incremental = true

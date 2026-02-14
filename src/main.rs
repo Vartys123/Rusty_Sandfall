@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 struct Grid {
     cols: usize,
     rows: usize,
-    cells: Vec<Vec<bool>>,
+    cells: Vec<bool>,
 }
 
 impl Grid {
@@ -12,7 +12,7 @@ impl Grid {
         Grid {
             cols: w,
             rows: h,
-            cells: vec![vec![false; w]; h],
+            cells: vec![false; w * h],
         }
     }
     fn random_fill(&mut self, p_start: f32, p_end: f32){
@@ -32,11 +32,11 @@ impl Grid {
         if x >= self.cols || y >= self.rows {
             return false;
         }
-        self.cells[y][x]
+        self.cells[y * self.cols + x]
     }
     fn set(&mut self, x: usize, y: usize, val: bool) {
         if x < self.cols && y < self.rows {
-            self.cells[y][x] = val;
+            self.cells[y * self.cols + x] = val;
         }
     }
     fn step(&mut self) {
@@ -73,8 +73,8 @@ impl Grid {
 
 #[macroquad::main("Rusty Sandfall")]
 async fn main() {
-    rand::srand(macroquad::miniquad::date::now() as u64);
-    let mut grid = Grid::new(384, 384);
+   // rand::srand(macroquad::miniquad::date::now() as u64);
+    let mut grid = Grid::new(2048, 2048);
     grid.random_fill(0.9, 0.01);
     let mut image = Image::gen_image_color(grid.cols as u16, grid.rows as u16, BLACK);
     let texture = Texture2D::from_image(&image);
