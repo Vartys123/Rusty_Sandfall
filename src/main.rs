@@ -1,5 +1,9 @@
 use macroquad::prelude::*;
 
+const GOLD_BYTES: [u8; 4] = [255, 215, 0, 255];
+const BLACK_BYTES: [u8; 4] = [0, 0, 0, 255];
+const PALETTE: [[u8; 4]; 2] = [BLACK_BYTES, GOLD_BYTES];
+
 #[derive(Debug)]
 struct Grid {
     cols: usize,
@@ -22,25 +26,22 @@ impl Grid {
         let r = (p_end / p_start).powf(1.0 / self.rows as f32);
         for y in 0..self.rows - 1 {
             for x in 0..self.cols {
-                let r_p: f32 = rand::gen_range(0.0, 1.0);
-                if r_p < p {
-                    self.set(x, y, true);
-                }
+                self.set(x, y, rand::gen_range(0.0, 1.0) < p);
             }
             p = p * r;
         }
     }
     fn get(&self, x: usize, y: usize) -> bool {
-        if x >= self.cols || y >= self.rows {
-            return false;
-        }
-        self.cells[y * self.cols + x]
+        (x < self.cols) & (y < self.rows) && self.cells[y * self.cols + x]
     }
     fn set(&mut self, x: usize, y: usize, val: bool) {
-        if x < self.cols && y < self.rows {
-            self.cells[y * self.cols + x] = val;
-            let color = if val { GOLD } else { BLACK };
-            self.img.set_pixel(x as u32, y as u32, color);
+        if (x < self.cols) & (y < self.rows) {
+            let idx = y * self.cols + x;
+            let old_val = self.cells[idx];
+            if old_val != val {
+                self.cells[idx] = val;
+                self.img.bytes[(idx << 2)..(idx << 2) + 4].copy_from_slice(&PALETTE[val as usize]);
+            }
         }
     }
     fn step(&mut self) {
@@ -64,13 +65,13 @@ impl Grid {
 #[macroquad::main("Rusty Sandfall")]
 async fn main() {
    // rand::srand(macroquad::miniquad::date::now() as u64);
-    let mut grid = Grid::new(2048, 2048);
+    let mut grid = Grid::new(512, 512);
     grid.random_fill(0.9, 0.01);
     let texture = Texture2D::from_image(&grid.img);
     texture.set_filter(FilterMode::Nearest);
 
     let mut last_update_time = 0.0;
-    let update_interval = 0.025;
+    let update_interval = 0.02;
     let mut is_pressed: bool = false;
 
     loop {
